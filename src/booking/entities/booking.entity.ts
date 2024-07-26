@@ -2,35 +2,34 @@ import { Traveller } from "src/traveller/entities/traveller.entity";
 import { Trip } from "src/trip/entities/trip.entity";
 import { User } from "src/user/entities/user.entity";
 import { Column, CreateDateColumn, DeleteDateColumn, Entity, JoinColumn, ManyToOne, PrimaryGeneratedColumn, UpdateDateColumn } from "typeorm";
-
 @Entity()
 export class Booking {
     @PrimaryGeneratedColumn()
-    id: number
+    id: number;
 
     @Column()
-    departure_from: string
+    departure_from: string;
 
     @Column()
-    total_pax: number
+    total_pax: number;
 
     @Column()
-    selling_price: number
+    selling_price: number;
 
     @Column()
-    advance_received: number
+    advance_received: number;
 
-    @ManyToOne(() => Trip)
+    @ManyToOne(() => Trip, { eager: true })
     @JoinColumn({ name: "trip_id" })
-    trip: Trip
+    trip: Trip;
 
-    @ManyToOne(() => Traveller)
-    @JoinColumn({ name: "travller_id" })
-    traveller: Traveller
+    @ManyToOne(() => Traveller, { eager: true })
+    @JoinColumn({ name: "traveller_id" })
+    traveller: Traveller;
 
-    @ManyToOne(() => User)
-    @JoinColumn({ name: "parent_id" })
-    user: User
+    @ManyToOne(() => User, { eager: true })
+    @JoinColumn({ name: "user_id" })
+    user: User;
 
     @CreateDateColumn({ type: 'timestamp', default: () => 'CURRENT_TIMESTAMP' })
     created_at: Date;

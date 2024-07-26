@@ -10,6 +10,7 @@ export class CreateUserDto {
     @IsNumber()
     phone_number: number
     
+    role: number
     password: string
     profile_url: string
 }
