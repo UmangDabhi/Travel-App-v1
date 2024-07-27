@@ -8,31 +8,36 @@ import { AuthGuard } from 'src/auth/auth.guard';
 export class UserController {
   constructor(private readonly userService: UserService) {}
 
+  @UseGuards(AuthGuard)
   @Post()
   create(@Body() createUserDto: CreateUserDto) {
     return this.userService.create(createUserDto);
   }
 
-  // @UseGuards(AuthGuarad)
+  @UseGuards(AuthGuard)
   @Get()
   findAll() {
     return this.userService.findAll();
   }
 
+  @UseGuards(AuthGuard)
   @Get(':id')
   findOne(@Param('id') id: string) {
     return this.userService.findOne(+id);
   }
+  @UseGuards(AuthGuard)
   @Get('get-by-email/:email')
   findOneByEmail(@Param('email') email: string) {
     return this.userService.findOneByEmail(email);
   }
-
+  
+  @UseGuards(AuthGuard)
   @Patch(':id')
   update(@Param('id') id: string, @Body() updateUserDto: UpdateUserDto) {
     return this.userService.update(+id, updateUserDto);
   }
-
+  
+  @UseGuards(AuthGuard)
   @Delete(':id')
   remove(@Param('id') id: string) {
     return this.userService.remove(+id);

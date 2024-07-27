@@ -23,6 +23,10 @@ export class TripController {
   findOne(@Param('id') id: string) {
     return this.tripService.findOne(+id);
   }
+  @Get('getByCode/:tripCode')
+  findOneByTripCode(@Param('tripCode') tripCode: string) {
+    return this.tripService.findOneByTripCode(tripCode);
+  }
 
   @Patch(':id')
   update(@Param('id') id: string, @Body() updateTripDto: UpdateTripDto) {

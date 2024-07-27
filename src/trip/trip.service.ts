@@ -57,6 +57,21 @@ export class TripService {
       return responseHandler(500, "Internal Server Error");
     }
   }
+  async findOneByTripCode(tripCode: string): Promise<any> {
+    try {
+      const trip = await this.tripRepository.findOneBy({ trip_code: tripCode });
+      if (!trip) {
+        throw new NotFoundException('Trip not found');
+      }
+      return responseHandler(200, 'Trip fetched successfully', trip);
+    } catch (error) {
+      console.error('Error fetching Trip:', error);
+      if (error instanceof NotFoundException) {
+        return responseHandler(404, "Trip Not Found");
+      }
+      return responseHandler(500, "Internal Server Error");
+    }
+  }
   async update(id: number, updateTripDto: UpdateTripDto): Promise<Trip> {
     try {
       await this.tripRepository.update(id, updateTripDto);

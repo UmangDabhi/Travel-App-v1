@@ -18,6 +18,8 @@ export class CreateTravellerDto {
     @IsEmail()
     email: string
 
+    id:number
+
     get name(): string {
         return `${this.firstname} ${this.lastname}`;
     }

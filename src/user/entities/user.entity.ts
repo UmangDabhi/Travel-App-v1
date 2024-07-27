@@ -14,7 +14,7 @@ export class User {
     @Column({ default: '1234' })
     password: string;
 
-    @Column({ type: "int", default: '3', comment: '1: Owner, 2: Manager, 3: Salesman, 4: Captain' })
+    @Column({ type: "int", default: 3, comment: '1: Owner, 2: Manager, 3: Salesman, 4: Captain' })
     role: number;
 
     @Column({ type: "bigint" })

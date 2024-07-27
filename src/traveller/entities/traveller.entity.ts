@@ -8,10 +8,10 @@ export class Traveller {
     @Column()
     name: string
 
-    @Column()
+    @Column({type:"bigint"})
     phone_no: number
 
-    @Column({ nullable: true })
+    @Column({ type:"bigint",nullable: true })
     secondary_phone_no: number
 
     @Column({ nullable: true })

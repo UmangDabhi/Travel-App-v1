@@ -16,8 +16,14 @@ export class Booking {
     @Column()
     selling_price: number;
 
-    @Column()
+    @Column({ default: 0 })
     advance_received: number;
+
+    @Column({ default: 0 })
+    collected_amount: number;
+
+    @Column({ default: false })
+    payment_done: boolean;
 
     @ManyToOne(() => Trip, { eager: true })
     @JoinColumn({ name: "trip_id" })
