@@ -81,8 +81,6 @@ export class BookingService {
     }
   }
 
-
-
   async findAll() {
     try {
       const bookings = await this.bookingRepository.find();
@@ -146,7 +144,7 @@ export class BookingService {
           ...traveller.email && { email: traveller.email }
         });
         updatedTraveller = await this.travellerRepository.findOne({ where: { id: traveller.id } });
-      }else{
+      } else {
         return responseHandler(400, 'Invalid Traveller Data');
       }
 
@@ -173,7 +171,6 @@ export class BookingService {
     }
   }
 
-
   async remove(id: number) {
     try {
       const booking = await this.bookingRepository.findOneBy({ id });
@@ -183,6 +180,31 @@ export class BookingService {
       const deletedBooking = await this.bookingRepository.softDelete(id);
       console.log(deletedBooking);
       return responseHandler(200, 'Booking Deleted Successfully', deletedBooking);
+    } catch (error) {
+      console.error(error);
+      if (error instanceof NotFoundException) {
+        return responseHandler(404, 'User Not Found');
+      }
+      return responseHandler(500, "Internal Server Error");
+    }
+  }
+
+  async findTripInfo(data: any) {
+    try {
+      console.log(data.trip_code);
+      const trip = await this.tripRepository.findOne({ where: { trip_code: data.trip_code } });
+      const bookings = await this.bookingRepository.find({ where: { trip: { id: trip.id } } })
+      const travellersList = bookings.map(booking => ({
+        id: booking.id,
+        total_pax: booking.total_pax,
+        pending_amount: booking.pending_amount,
+        payment_done: booking.payment_done,
+        name: booking.traveller.name,
+        phone_no: booking.traveller.phone_no,
+        secondary_phone_no: booking.traveller.secondary_phone_no,
+        email: booking.traveller.email,
+      }));
+      return responseHandler(200, 'message to be changes', { travellersList });
     } catch (error) {
       console.error(error);
       if (error instanceof NotFoundException) {
