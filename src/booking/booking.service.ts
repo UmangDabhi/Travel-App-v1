@@ -29,14 +29,13 @@ export class BookingService {
       let newTraveller: Traveller | null = null;
 
       if (traveller) {
-        // Construct the name to match in the database
-        const fullName = `${traveller.firstname} ${traveller.lastname}`;
 
         // Check if a traveller with the same phone_no and name already exists
         const existingTraveller = await this.travellerRepository.findOne({
           where: {
             phone_no: parseInt(traveller.phone_no),
-            name: fullName
+            firstname: traveller.firstname,
+            lastname: traveller.lastname,
           }
         });
 
@@ -46,7 +45,8 @@ export class BookingService {
         } else {
           // Create a new traveller if none exists
           newTraveller = this.travellerRepository.create({
-            name: fullName,
+            firstname: traveller.firstname,
+            lastname: traveller.lastname,
             phone_no: parseInt(traveller.phone_no),
             ...traveller.secondary_phone_no && { secondary_phone_no: parseInt(traveller.secondary_phone_no) },
             ...traveller.email && { email: traveller.email }
@@ -135,10 +135,9 @@ export class BookingService {
           return responseHandler(404, 'Traveller Not Found');
         }
 
-        // Construct the name to match in the database
-        const fullName = `${traveller.firstname} ${traveller.lastname}`;
         await this.travellerRepository.update(traveller.id, {
-          name: fullName,
+          firstname: traveller.firstname,
+          lastname: traveller.lastname,
           phone_no: parseInt(traveller.phone_no),
           ...traveller.secondary_phone_no && { secondary_phone_no: parseInt(traveller.secondary_phone_no) },
           ...traveller.email && { email: traveller.email }
@@ -199,7 +198,8 @@ export class BookingService {
         total_pax: booking.total_pax,
         pending_amount: booking.pending_amount,
         payment_done: booking.payment_done,
-        name: booking.traveller.name,
+        firstname: booking.traveller.firstname,
+        lastname: booking.traveller.lastname,
         phone_no: booking.traveller.phone_no,
         secondary_phone_no: booking.traveller.secondary_phone_no,
         email: booking.traveller.email,
