@@ -34,7 +34,7 @@ export class TripService {
   }
   async findAll(): Promise<any> {
     try {
-      const trips = await this.tripRepository.find();
+      const trips = await this.tripRepository.find({ order: { created_at: 'DESC', }, });
       return responseHandler(200, 'Trips fetched successfully', trips);
     } catch (error) {
       console.error('Error fetching Trips:', error);

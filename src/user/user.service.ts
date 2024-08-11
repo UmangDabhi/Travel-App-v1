@@ -20,15 +20,15 @@ export class UserService {
     } catch (error) {
       console.error('Error creating user:', error);
       if (error.code === '23505') {
-        return responseHandler(409,'Email Already Exists');
+        return responseHandler(409, 'Email Already Exists');
       }
-      return responseHandler(500,'Internal Server Error');
+      return responseHandler(500, 'Internal Server Error');
     }
   }
 
   async findAll(): Promise<any> {
     try {
-      const users = await this.userRepository.find();
+      const users = await this.userRepository.find({ order: { created_at: 'DESC', }, });
       return responseHandler(200, 'Users fetched successfully', users);
     } catch (error) {
       console.error('Error fetching users:', error);
@@ -38,7 +38,7 @@ export class UserService {
 
   async findOne(id: number): Promise<any> {
     try {
-      const user = await this.userRepository.findOneBy({id});
+      const user = await this.userRepository.findOneBy({ id });
       if (!user) {
         return responseHandler(404, 'User Not Found');
       }
@@ -80,7 +80,7 @@ export class UserService {
 
   async remove(id: number): Promise<any> {
     try {
-      const user = await this.userRepository.findOneBy({id});
+      const user = await this.userRepository.findOneBy({ id });
       if (!user) {
         return responseHandler(404, 'User Not Found');
       }

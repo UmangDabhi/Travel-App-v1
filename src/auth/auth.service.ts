@@ -35,14 +35,19 @@ export class AuthService {
     try {
       const response = await this.userService.findOneByEmail(email);
       const user = response.result;
-      if (old_password !== new_password)
-        throw new UnauthorizedException();
+
       if (user.password !== old_password)
-        throw new UnauthorizedException();
+        return responseHandler(401, 'Old password is incorrect');
+
+      if (user.password === new_password)
+        return responseHandler(401, 'New password cannot be the same as the old password');
+
       user.is_sys_password = false;
       user.password = new_password;
       await this.userService.update(user.id, user);
+      return responseHandler(200, 'Password changed successfully');
     } catch (error) {
+      console.error(error);
       if (error instanceof NotFoundException) {
         return responseHandler(404, error.message);
       }

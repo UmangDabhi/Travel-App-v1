@@ -3,6 +3,7 @@ import { BookingService } from './booking.service';
 import { CreateBookingDto } from './dto/create-booking.dto';
 import { UpdateBookingDto } from './dto/update-booking.dto';
 import { AuthGuard } from 'src/auth/auth.guard';
+import { FindBookingDto } from './dto/find-booking.dto';
 
 @Controller('booking')
 export class BookingController {
@@ -17,9 +18,9 @@ export class BookingController {
 
 
   @UseGuards(AuthGuard)
-  @Get()
-  findAll() {
-    return this.bookingService.findAll();
+  @Post('my-bookings')
+  findAll(@Body() findBookingDto: FindBookingDto) {
+    return this.bookingService.findAll(findBookingDto);
   }
 
   @UseGuards(AuthGuard)
@@ -43,7 +44,6 @@ export class BookingController {
   @UseGuards(AuthGuard)
   @Post('trip_info')
   findTripInfo(@Body() data: any) {
-    console.log("check");
     return this.bookingService.findTripInfo(data);
   }
 }

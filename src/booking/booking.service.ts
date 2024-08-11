@@ -8,6 +8,7 @@ import { Traveller } from 'src/traveller/entities/traveller.entity';
 import { User } from 'src/user/entities/user.entity';
 import { Trip } from 'src/trip/entities/trip.entity';
 import { responseHandler } from 'src/Utils/responseHandler';
+import { FindBookingDto } from './dto/find-booking.dto';
 
 @Injectable()
 export class BookingService {
@@ -51,7 +52,6 @@ export class BookingService {
             ...traveller.secondary_phone_no && { secondary_phone_no: parseInt(traveller.secondary_phone_no) },
             ...traveller.email && { email: traveller.email }
           });
-          console.log(newTraveller);
           await this.travellerRepository.save(newTraveller);
         }
       }
@@ -81,9 +81,9 @@ export class BookingService {
     }
   }
 
-  async findAll() {
+  async findAll(findBookingDto: FindBookingDto) {
     try {
-      const bookings = await this.bookingRepository.find();
+      const bookings = await this.bookingRepository.find({ where: { user: { id: findBookingDto.parent_id } }, order: { created_at: 'DESC', }, });
       const allBookings = bookings.map(booking => ({
         ...booking,
         total_amount: booking.total_amount,
@@ -177,7 +177,6 @@ export class BookingService {
         return responseHandler(404, 'Booking Not Found');
       }
       const deletedBooking = await this.bookingRepository.softDelete(id);
-      console.log(deletedBooking);
       return responseHandler(200, 'Booking Deleted Successfully', deletedBooking);
     } catch (error) {
       console.error(error);
@@ -190,7 +189,6 @@ export class BookingService {
 
   async findTripInfo(data: any) {
     try {
-      console.log(data.trip_code);
       const trip = await this.tripRepository.findOne({ where: { trip_code: data.trip_code } });
       const bookings = await this.bookingRepository.find({ where: { trip: { id: trip.id } } })
       const travellersList = bookings.map(booking => ({
