@@ -15,14 +15,14 @@ import { User } from './user/entities/user.entity';
 @Module({
   imports: [TripModule, UserModule,
     TypeOrmModule.forRoot({
-      type: "postgres",
-      host: "localhost",
-      port: 5432,
-      username: "postgres",
-      password: "123",
-      database: "Trip",
+      type: 'postgres',
+      host: process.env.POSTGRES_HOST,
+      port: parseInt(process.env.POSTGRES_PORT, 10),
+      username: process.env.POSTGRES_USER,
+      password: process.env.POSTGRES_PASSWORD,
+      database: process.env.POSTGRES_DB,
       entities: [__dirname + '/**/*.entity{.ts,.js}'],
-      synchronize: true
+      synchronize: true,
     }),
     AuthModule,
     BookingModule,
