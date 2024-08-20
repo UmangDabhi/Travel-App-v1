@@ -7,6 +7,7 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { AuthModule } from './auth/auth.module';
 import { BookingModule } from './booking/booking.module';
 import { TravellerModule } from './traveller/traveller.module';
+import { ConfigModule } from '@nestjs/config';
 import { Booking } from './booking/entities/booking.entity';
 import { Traveller } from './traveller/entities/traveller.entity';
 import { Trip } from './trip/entities/trip.entity';
@@ -14,6 +15,10 @@ import { User } from './user/entities/user.entity';
 
 @Module({
   imports: [TripModule, UserModule,
+    ConfigModule.forRoot({
+      envFilePath: '.env',
+      isGlobal: true,
+    }),
     TypeOrmModule.forRoot({
       type: 'postgres',
       host: process.env.POSTGRES_HOST,
