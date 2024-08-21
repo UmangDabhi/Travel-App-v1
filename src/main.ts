@@ -20,6 +20,6 @@ async function bootstrap() {
   app.use(serveReactMiddleware);
 
 
-  await app.listen(10000);
+  await app.listen(80);
 }
 bootstrap();
