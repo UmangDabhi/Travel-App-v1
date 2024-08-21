@@ -20,6 +20,6 @@ async function bootstrap() {
   app.use(serveReactMiddleware);
 
 
-  await app.listen(80);
+  await app.listen(process.env.PORT || 80);
 }
 bootstrap();
