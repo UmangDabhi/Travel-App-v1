@@ -16,9 +16,8 @@ async function bootstrap() {
   // Serve static files from the React build directory
   app.useStaticAssets(join(__dirname, '..', 'public'));
 
-  // Use a catch-all route to serve the React app's index.html file
+  // Use middleware to handle client-side routing
   app.use(serveReactMiddleware);
-
 
   await app.listen(process.env.PORT || 80);
 }
