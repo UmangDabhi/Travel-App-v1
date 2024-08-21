@@ -9,6 +9,7 @@ import { BookingModule } from './booking/booking.module';
 import { TravellerModule } from './traveller/traveller.module';
 import { ConfigModule } from '@nestjs/config';
 
+
 @Module({
   imports: [
     TripModule,
@@ -32,6 +33,6 @@ import { ConfigModule } from '@nestjs/config';
     TravellerModule,
   ],
   controllers: [AppController],
-  providers: [AppService, ConfigLoggerService],
+  providers: [AppService],
 })
 export class AppModule { }
