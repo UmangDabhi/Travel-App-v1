@@ -9,37 +9,37 @@ export class TripController {
   constructor(private readonly tripService: TripService) { }
 
   @UseGuards(AuthGuard)
-  @Post()
+  @Post('create_trip')
   create(@Body() createTripDto: CreateTripDto) {
     return this.tripService.create(createTripDto);
   }
 
   @UseGuards(AuthGuard)
-  @Get()
+  @Get('get_trips')
   findAll() {
     return this.tripService.findAll();
   }
 
   @UseGuards(AuthGuard)
-  @Get(':id')
+  @Get('get_one_trip/:id')
   findOne(@Param('id') id: string) {
     return this.tripService.findOne(+id);
   }
   
   @UseGuards(AuthGuard)
-  @Get('getByCode/:tripCode')
+  @Get('get_by_code/:tripCode')
   findOneByTripCode(@Param('tripCode') tripCode: string) {
     return this.tripService.findOneByTripCode(tripCode);
   }
 
   @UseGuards(AuthGuard)
-  @Patch(':id')
+  @Patch('update_trip/:id')
   update(@Param('id') id: string, @Body() updateTripDto: UpdateTripDto) {
     return this.tripService.update(+id, updateTripDto);
   }
 
   @UseGuards(AuthGuard)
-  @Delete(':id')
+  @Delete('delete_trip/:id')
   remove(@Param('id') id: string) {
     return this.tripService.remove(+id);
   }

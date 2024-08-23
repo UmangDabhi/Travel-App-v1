@@ -3,7 +3,7 @@ import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { InjectRepository } from '@nestjs/typeorm';
 import { User } from './entities/user.entity';
-import { Repository } from 'typeorm';
+import { In, Not, Repository } from 'typeorm';
 import { responseHandler } from 'src/Utils/responseHandler';
 
 @Injectable()
@@ -26,9 +26,24 @@ export class UserService {
     }
   }
 
-  async findAll(): Promise<any> {
+  async findAll(userRole: number): Promise<any> {
     try {
-      const users = await this.userRepository.find({ order: { created_at: 'DESC', }, });
+      let users;
+  
+      if (userRole === 1) {
+        // If the requesting user has role 1, return users without role 1
+        users = await this.userRepository.find({
+          where: { role: Not(1) },
+          order: { created_at: 'DESC' },
+        });
+      } else if (userRole === 2) {
+        // If the requesting user has role 2, return users without role 1 and 2
+        users = await this.userRepository.find({
+          where: { role: Not(In([1, 2])) },
+          order: { created_at: 'DESC' },
+        });
+      } 
+  
       return responseHandler(200, 'Users fetched successfully', users);
     } catch (error) {
       console.error('Error fetching users:', error);

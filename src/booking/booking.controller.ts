@@ -11,32 +11,32 @@ export class BookingController {
 
 
   @UseGuards(AuthGuard)
-  @Post()
+  @Post('create_booking')
   create(@Body() createBookingDto: CreateBookingDto) {
     return this.bookingService.create(createBookingDto);
   }
 
 
   @UseGuards(AuthGuard)
-  @Post('my-bookings')
+  @Post('my_bookings')
   findAll(@Body() findBookingDto: FindBookingDto) {
     return this.bookingService.findAll(findBookingDto);
   }
 
   @UseGuards(AuthGuard)
-  @Get(':id')
+  @Get('get_one_booking/:id')
   findOne(@Param('id') id: string) {
     return this.bookingService.findOne(+id);
   }
 
   @UseGuards(AuthGuard)
-  @Patch(':id')
+  @Patch('update_booking/:id')
   update(@Param('id') id: string, @Body() updateBookingDto: UpdateBookingDto) {
     return this.bookingService.update(+id, updateBookingDto);
   }
 
   @UseGuards(AuthGuard)
-  @Delete(':id')
+  @Delete('delete_booking/:id')
   remove(@Param('id') id: string) {
     return this.bookingService.remove(+id);
   }
