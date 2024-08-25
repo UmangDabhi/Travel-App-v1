@@ -14,12 +14,13 @@ export class TripService {
   ) { }
 
   async create(createTripDto: CreateTripDto): Promise<Trip> {
-    const { trip_destination, expected_date } = createTripDto;
+    const { trip_destination, expected_date,trip_type } = createTripDto;
     const trip_code = await this.getTripCode();
 
     const newTrip = this.tripRepository.create({
       trip_code,
       trip_destination,
+      trip_type,
       expected_date,
     });
     try {

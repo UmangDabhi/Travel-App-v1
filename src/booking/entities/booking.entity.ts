@@ -22,8 +22,12 @@ export class Booking {
     @Column({ default: 0 })
     collected_amount: number;
 
-    @Column({ nullable: true, comment: "0-Cash, 1-Owner 1, 2-Owner 2" })
-    collection_type: number;
+    @Column({ nullable: true })
+    collection_type: string;
+
+    @ManyToOne(() => User, { nullable: true, eager: true })
+    @JoinColumn({ name: "user_id" })
+    collected_by: User;
 
     @Column({ default: false })
     payment_done: boolean;

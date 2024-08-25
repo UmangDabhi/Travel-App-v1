@@ -15,7 +15,9 @@ export class UserService {
 
   async create(createUserDto: CreateUserDto): Promise<any> {
     try {
-      const newUser = await this.userRepository.save(createUserDto);
+      const newUser = this.userRepository.create(createUserDto);
+      newUser.emp_code = await this.getEmpCode();
+      this.userRepository.save(newUser);
       return responseHandler(201, 'User created successfully', newUser);
     } catch (error) {
       console.error('Error creating user:', error);
@@ -108,5 +110,28 @@ export class UserService {
       }
       return responseHandler(500, 'Internal Server Error');
     }
+  }
+  private async getEmpCode(): Promise<string> {
+    let emp_code: string;
+    let isCodeUnique = false;
+
+    while (!isCodeUnique) {
+      emp_code = this.generateEmpCode();
+
+      const existingUser = await this.userRepository.findOne({ where: { emp_code } });
+
+      if (!existingUser) {
+        isCodeUnique = true;
+      }
+    }
+    return emp_code;
+  }
+  private generateEmpCode(): string {
+    const characters = '0123456789';
+    let result = '#EMP';
+    for (let i = 0; i < 3; i++) {
+      result += characters.charAt(Math.floor(Math.random() * characters.length));
+    }
+    return result;
   }
 }

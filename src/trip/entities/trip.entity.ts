@@ -12,6 +12,9 @@ export class Trip {
     trip_destination: string;
 
     @Column()
+    trip_type: string;
+
+    @Column()
     expected_date: string;
 
     @Column({ type: "int", default: 0, comment: "0-Pending, 1-Destined, 2-On Going, 3-Completed" })
