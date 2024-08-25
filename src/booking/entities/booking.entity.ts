@@ -18,6 +18,9 @@ export class Booking {
 
     @Column({ default: 0 })
     advance_received: number;
+    
+    @Column({ nullable: true })
+    sharing_type: string;
 
     @Column({ default: 0 })
     collected_amount: number;
@@ -26,7 +29,7 @@ export class Booking {
     collection_type: string;
 
     @ManyToOne(() => User, { nullable: true, eager: true })
-    @JoinColumn({ name: "user_id" })
+    @JoinColumn({ name: "collected_by" })
     collected_by: User;
 
     @Column({ default: false })

@@ -17,6 +17,9 @@ export class CreateBookingDto {
   advance_received: number;
 
   @IsNotEmpty()
+  sharing_type: string;
+
+  @IsNotEmpty()
   trip_id: number;
 
   @IsNotEmpty()
