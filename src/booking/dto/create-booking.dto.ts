@@ -1,5 +1,5 @@
 // src/booking/dto/create-booking.dto.ts
-import { IsNotEmpty, IsNumber, ValidateNested } from 'class-validator';
+import { IsNotEmpty, IsNumber, IsOptional, ValidateNested } from 'class-validator';
 import { Type } from 'class-transformer';
 import { CreateTravellerDto } from '../../traveller/dto/create-traveller.dto';
 
@@ -18,6 +18,9 @@ export class CreateBookingDto {
 
   @IsNotEmpty()
   sharing_type: string;
+
+  @IsOptional()
+  traveller_remark: string;
 
   @IsNotEmpty()
   trip_id: number;

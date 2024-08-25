@@ -22,6 +22,9 @@ export class Booking {
     @Column({ nullable: true })
     sharing_type: string;
 
+    @Column({ nullable: true })
+    traveller_remark: string;
+
     @Column({ default: 0 })
     collected_amount: number;
 
