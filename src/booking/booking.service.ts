@@ -35,8 +35,7 @@ export class BookingService {
         const existingTraveller = await this.travellerRepository.findOne({
           where: {
             phone_no: parseInt(traveller.phone_no),
-            firstname: traveller.firstname,
-            lastname: traveller.lastname,
+            traveller_name: traveller.traveller_name,
           }
         });
 
@@ -46,8 +45,7 @@ export class BookingService {
         } else {
           // Create a new traveller if none exists
           newTraveller = this.travellerRepository.create({
-            firstname: traveller.firstname,
-            lastname: traveller.lastname,
+            traveller_name: traveller.traveller_name,
             phone_no: parseInt(traveller.phone_no),
             ...traveller.secondary_phone_no && { secondary_phone_no: parseInt(traveller.secondary_phone_no) },
             ...traveller.email && { email: traveller.email }
@@ -136,8 +134,7 @@ export class BookingService {
         }
 
         await this.travellerRepository.update(traveller.id, {
-          firstname: traveller.firstname,
-          lastname: traveller.lastname,
+          traveller_name: traveller.traveller_name,
           phone_no: parseInt(traveller.phone_no),
           ...traveller.secondary_phone_no && { secondary_phone_no: parseInt(traveller.secondary_phone_no) },
           ...traveller.email && { email: traveller.email }
@@ -196,8 +193,7 @@ export class BookingService {
         total_pax: booking.total_pax,
         pending_amount: booking.pending_amount,
         payment_done: booking.payment_done,
-        firstname: booking.traveller.firstname,
-        lastname: booking.traveller.lastname,
+        traveller_name: booking.traveller.traveller_name,
         phone_no: booking.traveller.phone_no,
         secondary_phone_no: booking.traveller.secondary_phone_no,
         email: booking.traveller.email,

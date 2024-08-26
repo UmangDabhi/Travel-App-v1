@@ -2,10 +2,7 @@ import { IsEmail, IsNotEmpty, IsNumber, IsOptional } from "class-validator"
 
 export class CreateTravellerDto {
     @IsNotEmpty()
-    firstname: string
-
-    @IsNotEmpty()
-    lastname: string
+    traveller_name: string
 
     @IsNumber()
     phone_no: string
@@ -19,8 +16,4 @@ export class CreateTravellerDto {
     email: string
 
     id:number
-
-    get name(): string {
-        return `${this.firstname} ${this.lastname}`;
-    }
 }

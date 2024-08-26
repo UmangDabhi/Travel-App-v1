@@ -6,10 +6,7 @@ export class Traveller {
     id: number
 
     @Column()
-    firstname: string
-    
-    @Column()
-    lastname: string
+    traveller_name: string
     
     @Column({type:"bigint"})
     phone_no: number
