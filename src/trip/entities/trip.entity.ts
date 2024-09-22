@@ -21,7 +21,7 @@ export class Trip {
     expected_date: string;
 
     @Column({ type: "int", default: 0, comment: "0-Pending, 1-Destined, 2-On Going, 3-Completed" })
-    status: string;
+    status: number;
 
     @CreateDateColumn({ type: 'timestamp', default: () => 'CURRENT_TIMESTAMP' })
     created_at: Date;

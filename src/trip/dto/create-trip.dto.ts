@@ -11,5 +11,5 @@ export class CreateTripDto {
 
     @IsNotEmpty()
     expected_date: string
-    status: string
+    status: number
 }

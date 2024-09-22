@@ -1,11 +1,11 @@
 import { Injectable, ConflictException, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { ILike, In, Repository } from 'typeorm';
 import { Trip } from './entities/trip.entity';
 import { CreateTripDto } from './dto/create-trip.dto';
 import { responseHandler } from 'src/Utils/responseHandler';
 import { UpdateTripDto } from './dto/update-trip.dto';
-
+import { getMapKeysValue, statusMap, tripDurationMap } from '../Helper/helper'
 @Injectable()
 export class TripService {
   constructor(
@@ -34,15 +34,46 @@ export class TripService {
       return responseHandler(500, "Internal Server Error");
     }
   }
-  async findAll(): Promise<any> {
+  async findAll(page: number = 1, limit: number = 10, searchQuery?: string): Promise<any> {
     try {
-      const trips = await this.tripRepository.find({ order: { created_at: 'DESC', }, });
-      return responseHandler(200, 'Trips fetched successfully', trips);
+      const skip = (page - 1) * limit;
+      let queryOptions: any = {
+        where: {},
+        order: { created_at: 'DESC' },
+        skip,
+        take: limit,
+      };
+
+      if (searchQuery) {
+        const statusValues = getMapKeysValue(searchQuery, statusMap);
+        const tripDurationValues = getMapKeysValue(searchQuery, tripDurationMap);
+
+        queryOptions.where = [
+          { trip_code: ILike(`%${searchQuery}%`) },
+          { trip_destination: ILike(`%${searchQuery}%`) },
+          { trip_type: ILike(`%${searchQuery}%`) },
+          { expected_date: ILike(`%${searchQuery}%`) },
+        ];
+
+        if (statusValues.length > 0) {
+          queryOptions.where.push({ status: In(statusValues) });
+        }
+        if (tripDurationValues.length > 0) {
+          queryOptions.where.push({ trip_duration: In(tripDurationValues) });
+        }
+      }
+
+      const [trips, total] = await this.tripRepository.findAndCount(queryOptions);
+
+      const totalPages = Math.ceil(total / limit);
+
+      return responseHandler(200, 'Trips fetched successfully', { trips, total, totalPages, currentPage: page });
     } catch (error) {
       console.error('Error fetching Trips:', error);
       return responseHandler(500, "Internal Server Error");
     }
   }
+
 
   async findOne(id: number): Promise<any> {
     try {

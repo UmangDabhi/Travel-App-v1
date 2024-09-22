@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, UseGuards } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, UseGuards, Query } from '@nestjs/common';
 import { TripService } from './trip.service';
 import { CreateTripDto } from './dto/create-trip.dto';
 import { UpdateTripDto } from './dto/update-trip.dto';
@@ -14,10 +14,14 @@ export class TripController {
     return this.tripService.create(createTripDto);
   }
 
-  @UseGuards(AuthGuard)
+  // @UseGuards(AuthGuard)
   @Get('get_trips')
-  findAll() {
-    return this.tripService.findAll();
+  findAll(
+    @Query('page') page: number = 1,
+    @Query('limit') limit: number = 10,
+    @Query('searchQuery') searchQuery?: string,
+  ) {
+    return this.tripService.findAll(Number(page), Number(limit), searchQuery);
   }
 
   @UseGuards(AuthGuard)
@@ -25,7 +29,7 @@ export class TripController {
   findOne(@Param('id') id: string) {
     return this.tripService.findOne(+id);
   }
-  
+
   @UseGuards(AuthGuard)
   @Get('get_by_code/:tripCode')
   findOneByTripCode(@Param('tripCode') tripCode: string) {

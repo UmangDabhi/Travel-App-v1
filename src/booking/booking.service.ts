@@ -3,7 +3,7 @@ import { CreateBookingDto } from './dto/create-booking.dto';
 import { UpdateBookingDto } from './dto/update-booking.dto';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Booking } from './entities/booking.entity';
-import { Repository } from 'typeorm';
+import { ILike, Raw, Repository } from 'typeorm';
 import { Traveller } from 'src/traveller/entities/traveller.entity';
 import { User } from 'src/user/entities/user.entity';
 import { Trip } from 'src/trip/entities/trip.entity';
@@ -79,15 +79,42 @@ export class BookingService {
     }
   }
 
-  async findAll(findBookingDto: FindBookingDto) {
+  async findAll(findBookingDto: FindBookingDto, page: number = 1, limit: number = 10, searchQuery?: string) {
     try {
-      const bookings = await this.bookingRepository.find({ where: { user: { id: findBookingDto.parent_id } }, order: { created_at: 'DESC', }, });
+      const skip = (page - 1) * limit;
+      let queryOptions: any = {
+        where: { user: { id: findBookingDto.parent_id } },
+        order: { created_at: 'DESC' },
+        skip,
+        take: limit,
+      };
+
+      if (searchQuery) {
+        queryOptions.where = [
+          // {  },
+          { user: { id: findBookingDto.parent_id }, departure_from: ILike(`%${searchQuery}%`) },
+          { user: { id: findBookingDto.parent_id }, trip: { trip_code: ILike(`%${searchQuery}%`) } },
+          { user: { id: findBookingDto.parent_id }, trip: { trip_destination: ILike(`%${searchQuery}%`) } },
+          { user: { id: findBookingDto.parent_id }, traveller: { traveller_name: ILike(`%${searchQuery}%`) } },
+          { user: { id: findBookingDto.parent_id }, traveller: { phone_no: Raw((text) => `CAST(${text} as varchar) ILike '%${searchQuery}%'`) } },
+          // { selling_price: ILike(`%${searchQuery}%`) },
+          // { advance_received: ILike(`%${searchQuery}%`) },
+          // { sharing_type: ILike(`%${searchQuery}%`) },
+        ];
+
+      }
+
+
+      const [bookings, total] = await this.bookingRepository.findAndCount(queryOptions);
+      // const bookings = await this.bookingRepository.find({ where: { user: { id: findBookingDto.parent_id } }, order: { created_at: 'DESC', }, });
       const allBookings = bookings.map(booking => ({
         ...booking,
         total_amount: booking.total_amount,
         pending_amount: booking.pending_amount,
       }));
-      return responseHandler(200, 'Bookings fetched successfully', allBookings);
+      const totalPages = Math.ceil(total / limit);
+
+      return responseHandler(200, 'Bookings fetched successfully', { allBookings, total, totalPages, currentPage: page });
     } catch (error) {
       console.error(error);
       return responseHandler(500, 'Internal Server Error');

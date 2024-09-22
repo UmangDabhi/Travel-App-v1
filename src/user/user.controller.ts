@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, UseGuards } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, UseGuards, Query } from '@nestjs/common';
 import { UserService } from './user.service';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
@@ -14,10 +14,15 @@ export class UserController {
     return this.userService.create(createUserDto);
   }
 
-  @UseGuards(AuthGuard)
+  // @UseGuards(AuthGuard)
   @Get('get_users/:role')
-  findAll(@Param('role') role: number) {
-    return this.userService.findAll(Number(role));
+  findAll(
+    @Param('role') role: number,
+    @Query('page') page: number = 1,
+    @Query('limit') limit: number = 10,
+    @Query('searchQuery') searchQuery?: string
+  ) {
+    return this.userService.findAll(Number(role), Number(page), Number(limit), searchQuery);
   }
 
   @UseGuards(AuthGuard)

@@ -3,7 +3,7 @@ import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { InjectRepository } from '@nestjs/typeorm';
 import { User } from './entities/user.entity';
-import { In, Not, Repository } from 'typeorm';
+import { ILike, In, Like, Not, Raw, Repository } from 'typeorm';
 import { responseHandler } from 'src/Utils/responseHandler';
 
 @Injectable()
@@ -28,30 +28,48 @@ export class UserService {
     }
   }
 
-  async findAll(userRole: number): Promise<any> {
+  async findAll(userRole: number, page: number = 1, limit: number = 10, searchQuery?: string): Promise<any> {
     try {
-      let users;
-  
+      const skip = (page - 1) * limit;
+
+      // Base query options
+      let queryOptions: any = {
+        where: {},
+        order: { created_at: 'DESC' },
+        skip,
+        take: limit,
+      };
+
+      // Add role-based filtering
       if (userRole === 1) {
-        // If the requesting user has role 1, return users without role 1
-        users = await this.userRepository.find({
-          where: { role: Not(1) },
-          order: { created_at: 'DESC' },
-        });
+        queryOptions.where.role = Not(1);
       } else if (userRole === 2) {
-        // If the requesting user has role 2, return users without role 1 and 2
-        users = await this.userRepository.find({
-          where: { role: Not(In([1, 2])) },
-          order: { created_at: 'DESC' },
-        });
-      } 
-  
-      return responseHandler(200, 'Users fetched successfully', users);
+        queryOptions.where.role = Not(In([1, 2]));
+      }
+
+      // Add search query if provided
+      if (searchQuery) {
+        queryOptions.where = [
+          { role: queryOptions.where.role, name: ILike(`%${searchQuery}%`) },
+          { role: queryOptions.where.role, email: ILike(`%${searchQuery}%`) },
+          { role: queryOptions.where.role, phone_number: Raw((text) => `CAST(${text} as varchar) ILike '%${searchQuery}%'`) },
+          { role: queryOptions.where.role, emp_code: ILike(`%${searchQuery}%`) },
+        ];
+      }
+
+      // Fetch users with pagination and optional search query
+      const [users, total] = await this.userRepository.findAndCount(queryOptions);
+
+      // Calculate total pages
+      const totalPages = Math.ceil(total / limit);
+
+      return responseHandler(200, 'Users fetched successfully', { users, total, totalPages, currentPage: page });
     } catch (error) {
       console.error('Error fetching users:', error);
       return responseHandler(500, 'Internal Server Error');
     }
   }
+
 
   async findOne(id: number): Promise<any> {
     try {

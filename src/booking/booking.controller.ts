@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, UseGuards } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, UseGuards, Query } from '@nestjs/common';
 import { BookingService } from './booking.service';
 import { CreateBookingDto } from './dto/create-booking.dto';
 import { UpdateBookingDto } from './dto/update-booking.dto';
@@ -17,10 +17,15 @@ export class BookingController {
   }
 
 
-  @UseGuards(AuthGuard)
+  // @UseGuards(AuthGuard)
   @Post('my_bookings')
-  findAll(@Body() findBookingDto: FindBookingDto) {
-    return this.bookingService.findAll(findBookingDto);
+  findAll(
+    @Body() findBookingDto: FindBookingDto,
+    @Query('page') page: number = 1,
+    @Query('limit') limit: number = 10,
+    @Query('searchQuery') searchQuery?: string,
+  ) {
+    return this.bookingService.findAll(findBookingDto,Number(page), Number(limit), searchQuery);
   }
 
   @UseGuards(AuthGuard)
