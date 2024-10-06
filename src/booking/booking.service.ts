@@ -3,12 +3,12 @@ import { CreateBookingDto } from './dto/create-booking.dto';
 import { UpdateBookingDto } from './dto/update-booking.dto';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Booking } from './entities/booking.entity';
-import { ILike, Raw, Repository } from 'typeorm';
+import { Between, Brackets, ILike, Raw, Repository } from 'typeorm';
 import { Traveller } from 'src/traveller/entities/traveller.entity';
 import { User } from 'src/user/entities/user.entity';
 import { Trip } from 'src/trip/entities/trip.entity';
 import { responseHandler } from 'src/Utils/responseHandler';
-import { FindBookingDto } from './dto/find-booking.dto';
+import { USER_ROLE } from 'src/Helper/helper';
 
 @Injectable()
 export class BookingService {
@@ -79,39 +79,75 @@ export class BookingService {
     }
   }
 
-  async findAll(findBookingDto: FindBookingDto, page: number = 1, limit: number = 10, searchQuery?: string) {
+  async findAll(req: any, page: number = 1, limit: number = 10, searchQuery?: string, from?: string, to?: string, destination?: string, type?: string) {
     try {
       const skip = (page - 1) * limit;
-      let queryOptions: any = {
-        where: { user: { id: findBookingDto.parent_id } },
-        order: { created_at: 'DESC' },
-        skip,
-        take: limit,
-      };
 
-      if (searchQuery) {
-        queryOptions.where = [
-          // {  },
-          { user: { id: findBookingDto.parent_id }, departure_from: ILike(`%${searchQuery}%`) },
-          { user: { id: findBookingDto.parent_id }, trip: { trip_code: ILike(`%${searchQuery}%`) } },
-          { user: { id: findBookingDto.parent_id }, trip: { trip_destination: ILike(`%${searchQuery}%`) } },
-          { user: { id: findBookingDto.parent_id }, traveller: { traveller_name: ILike(`%${searchQuery}%`) } },
-          { user: { id: findBookingDto.parent_id }, traveller: { phone_no: Raw((text) => `CAST(${text} as varchar) ILike '%${searchQuery}%'`) } },
-          // { selling_price: ILike(`%${searchQuery}%`) },
-          // { advance_received: ILike(`%${searchQuery}%`) },
-          // { sharing_type: ILike(`%${searchQuery}%`) },
-        ];
+      // Create the query builder
+      const query = this.bookingRepository
+        .createQueryBuilder('booking')
+        .leftJoinAndSelect('booking.trip', 'trip')
+        .leftJoinAndSelect('booking.traveller', 'traveller')
+        .leftJoinAndSelect('booking.user', 'user')
+        .orderBy('booking.created_at', 'DESC')
+        .skip(skip)
+        .take(limit);
 
+      // Apply user filter if the user is not ADMIN or MANAGER
+      if (req.user.role !== USER_ROLE.ADMIN && req.user.role !== USER_ROLE.MANAGER) {
+        query.andWhere('booking.user_id = :userId', { userId: req.user.id });
       }
 
+      // Apply search query filtering (OR condition)
+      if (searchQuery) {
+        query.andWhere(
+          new Brackets(qb => {
+            qb.orWhere('booking.departure_from ILIKE :searchQuery', { searchQuery: `%${searchQuery}%` })
+              .orWhere('trip.trip_code ILIKE :searchQuery', { searchQuery: `%${searchQuery}%` })
+              .orWhere('trip.trip_destination ILIKE :searchQuery', { searchQuery: `%${searchQuery}%` })
+              .orWhere('traveller.traveller_name ILIKE :searchQuery', { searchQuery: `%${searchQuery}%` })
+              .orWhere('traveller.phone_no::varchar ILIKE :searchQuery', { searchQuery: `%${searchQuery}%` });
+          })
+        );
+      }
 
-      const [bookings, total] = await this.bookingRepository.findAndCount(queryOptions);
-      // const bookings = await this.bookingRepository.find({ where: { user: { id: findBookingDto.parent_id } }, order: { created_at: 'DESC', }, });
+      function isValidDate(dateString: string): boolean {
+        const date = new Date(dateString);
+        return !isNaN(date.getTime());
+      }
+
+    
+      if (from && isValidDate(from)) {
+        const fromDate = new Date(from).toISOString().split('T')[0];
+        query.andWhere('CAST(trip.expected_date AS DATE) >= :fromDate', { fromDate });
+      }
+
+      if (to && isValidDate(to)) {
+        const toDate = new Date(to).toISOString().split('T')[0];
+        query.andWhere('CAST(trip.expected_date AS DATE) <= :toDate', { toDate });
+      }
+
+      if (destination) {
+        console.log("yo yo");
+        query.andWhere('trip.trip_destination ILIKE :destination', { destination: `%${destination}%` });
+      }
+
+      // Apply type filter
+      if (type) {
+        console.log("yo yo");
+        query.andWhere('trip.trip_type = :type', { type });
+      }
+
+      // Execute the query and get results
+      const bookings = await query.getMany();
+      const total = await query.getCount();
+
       const allBookings = bookings.map(booking => ({
         ...booking,
         total_amount: booking.total_amount,
         pending_amount: booking.pending_amount,
       }));
+
       const totalPages = Math.ceil(total / limit);
 
       return responseHandler(200, 'Bookings fetched successfully', { allBookings, total, totalPages, currentPage: page });
@@ -120,6 +156,8 @@ export class BookingService {
       return responseHandler(500, 'Internal Server Error');
     }
   }
+
+
 
   async findOne(id: number) {
     try {

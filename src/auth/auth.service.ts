@@ -17,7 +17,7 @@ export class AuthService {
         return responseHandler(404, 'Wrong Password');
       }
 
-      const payload = { id: user.id, email: user.email };
+      const payload = { id: user.id, email: user.email, role: user.role };
       const access_token = await this.jwtService.signAsync(payload, {
         secret: jwtConstants.secret,
         expiresIn: "2d", // Token expires in 2 days
