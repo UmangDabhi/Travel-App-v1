@@ -1,9 +1,10 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, UseGuards, Query, Req } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, UseGuards, Query, Req, Res } from '@nestjs/common';
 import { BookingService } from './booking.service';
 import { CreateBookingDto } from './dto/create-booking.dto';
 import { UpdateBookingDto } from './dto/update-booking.dto';
 import { AuthGuard } from 'src/auth/auth.guard';
 import { FindBookingDto } from './dto/find-booking.dto';
+import { Response } from 'express';
 
 @Controller('booking')
 export class BookingController {
@@ -54,5 +55,12 @@ export class BookingController {
   @Post('trip_info')
   findTripInfo(@Body() data: any) {
     return this.bookingService.findTripInfo(data);
+  }
+
+  @UseGuards(AuthGuard)
+  @Get('export/:trip_id')
+  async getAllBookingsForTrip(@Param('trip_id') tripId: number, @Req() req: any, @Res() res: Response) {
+    console.log(tripId);
+    return this.bookingService.findAllForTrip(tripId, req, res);
   }
 }

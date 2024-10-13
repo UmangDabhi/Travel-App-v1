@@ -6,11 +6,14 @@ import { CreateTripDto } from './dto/create-trip.dto';
 import { responseHandler } from 'src/Utils/responseHandler';
 import { UpdateTripDto } from './dto/update-trip.dto';
 import { getMapKeysValue, statusMap, tripDurationMap } from '../Helper/helper'
+import { Booking } from 'src/booking/entities/booking.entity';
 @Injectable()
 export class TripService {
   constructor(
     @InjectRepository(Trip)
     private readonly tripRepository: Repository<Trip>,
+    @InjectRepository(Booking)
+    private readonly bookingRepository: Repository<Booking>,
   ) { }
 
   async create(createTripDto: CreateTripDto): Promise<Trip> {
@@ -34,12 +37,12 @@ export class TripService {
       return responseHandler(500, "Internal Server Error");
     }
   }
-  async findAll(page: number = 1, limit: number = 10, searchQuery?: string): Promise<any> {
+  async findAll(req, page: number = 1, limit: number = 10, searchQuery?: string): Promise<any> {
     try {
       const skip = (page - 1) * limit;
       let queryOptions: any = {
         where: {},
-        order: { created_at: 'DESC' },
+        order: { expected_date: 'ASC' },
         skip,
         take: limit,
       };
@@ -117,8 +120,13 @@ export class TripService {
   async remove(id: number): Promise<any> {
     try {
       const trip = await this.tripRepository.findOneBy({ id });
+      const bookings = await this.bookingRepository.find({ where: { trip: { id: trip.id } }, relations: ['trip'] });
+
       if (!trip) {
         return responseHandler(404, 'Trip Not Found');
+      }
+      if (bookings && bookings.length > 0) {
+        return responseHandler(409, 'Cannot Delete Trip With Bookings');
       }
       await this.tripRepository.softDelete(id);
       return responseHandler(200, 'Trip soft deleted successfully');

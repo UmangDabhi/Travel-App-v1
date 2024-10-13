@@ -9,6 +9,10 @@ import { User } from 'src/user/entities/user.entity';
 import { Trip } from 'src/trip/entities/trip.entity';
 import { responseHandler } from 'src/Utils/responseHandler';
 import { USER_ROLE } from 'src/Helper/helper';
+import { response, Response } from 'express';
+import * as ExcelJS from 'exceljs';
+import * as fs from 'fs';
+import * as path from 'path';
 
 @Injectable()
 export class BookingService {
@@ -89,7 +93,7 @@ export class BookingService {
         .leftJoinAndSelect('booking.trip', 'trip')
         .leftJoinAndSelect('booking.traveller', 'traveller')
         .leftJoinAndSelect('booking.user', 'user')
-        .orderBy('booking.created_at', 'DESC')
+        .orderBy('trip.expected_date', 'ASC')
         .skip(skip)
         .take(limit);
 
@@ -116,7 +120,7 @@ export class BookingService {
         return !isNaN(date.getTime());
       }
 
-    
+
       if (from && isValidDate(from)) {
         const fromDate = new Date(from).toISOString().split('T')[0];
         query.andWhere('CAST(trip.expected_date AS DATE) >= :fromDate', { fromDate });
@@ -156,6 +160,104 @@ export class BookingService {
       return responseHandler(500, 'Internal Server Error');
     }
   }
+
+  async findAllForTrip(tripId: any, req: any, res: Response) {
+    try {
+      // Create the query builder
+      const query = this.bookingRepository
+        .createQueryBuilder('booking')
+        .leftJoinAndSelect('booking.trip', 'trip')
+        .leftJoinAndSelect('booking.traveller', 'traveller')
+        .leftJoinAndSelect('booking.user', 'user')
+        .where('trip.id = :tripId', { tripId })
+        .orderBy('trip.expected_date', 'ASC')
+        .select([
+          'trip.trip_code AS Trip_Code',
+          'trip.expected_date AS Expected_Trip_Date',
+          'trip.trip_destination AS Trip_Destination',
+          'trip.trip_duration AS Trip_Duration',
+          'trip.trip_type AS Trip_Type',
+          'booking.departure_from AS Departure_From',
+          'booking.total_pax AS Total_Pax',
+          'booking.selling_price AS Selling_Price',
+          'booking.advance_received AS Advance_Received',
+          'booking.sharing_type AS Sharing_Type',
+          'booking.traveller_remark AS Traveller_Remark',
+          'booking.collected_amount AS Collected_Amount',
+          'traveller.traveller_name AS Traveller_Name',
+          'traveller.phone_no AS Traveller_Phone_No',
+          'traveller.secondary_phone_no AS Travller_Secondary_Phone_No',
+          'traveller.email AS Traveller_Email',
+          'user.name AS Booked_By',
+          'user.emp_code AS Employee_Code',
+          'user.email AS Employee_Mail',
+        ]);
+
+
+      // Execute the query and get results
+      const bookings = await query.getRawMany();
+
+      if (bookings.length === 0) {
+        return responseHandler(404, 'No bookings found', res);
+      }
+
+      // Map the booking data to include additional computed fields
+      const allBookings = bookings.map(booking => ({
+        ...booking,
+        total_amount: booking.total_amount,
+        pending_amount: booking.pending_amount,
+      }));
+      console.log(allBookings);
+
+      // Export the data to Excel and send it as a file download
+      await this.exportToExcel(allBookings, res);
+
+      // Response is handled in exportToExcel, so no need for further response here
+    } catch (error) {
+      console.error(error);
+      return responseHandler(500, 'Internal Server Error', res);
+    }
+  }
+
+
+  async exportToExcel(data: any[], res: Response): Promise<void> {
+    try {
+      // Check if there's data to export
+      if (data.length === 0) {
+        return responseHandler(404, 'No data available for export', res);
+      }
+
+      // Create a new workbook and worksheet
+      const workbook = new ExcelJS.Workbook();
+      const worksheet = workbook.addWorksheet('Data');
+
+      // Add headers to the worksheet
+      const headers = Object.keys(data[0]);
+      worksheet.addRow(headers);
+
+      // Add data rows to the worksheet
+      data.forEach((row) => {
+        worksheet.addRow(Object.values(row));
+      });
+
+      // Generate Excel file as a buffer
+      const buffer = await workbook.xlsx.writeBuffer();
+
+      // Set the response headers for downloading the Excel file
+      res.setHeader('Content-Disposition', `attachment; filename=data-${new Date().toISOString().replace(/[:.]/g, '-')}.xlsx`);
+      res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+
+      // Send the Excel file buffer in the response
+      res.send(buffer);
+
+    } catch (error) {
+      console.error('Error exporting data to Excel:', error);
+      return responseHandler(500, 'Internal Server Error', res);
+    }
+  }
+
+
+
 
 
 
