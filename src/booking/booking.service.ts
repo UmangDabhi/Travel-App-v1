@@ -204,8 +204,8 @@ export class BookingService {
       // Map the booking data to include additional computed fields
       const allBookings = bookings.map(booking => ({
         ...booking,
-        total_amount: booking.total_amount,
-        pending_amount: booking.pending_amount,
+        total_amount: booking.selling_price * booking.total_pax,
+        pending_amount: (booking.selling_price * booking.total_pax) - booking.advance_received
       }));
       console.log(allBookings);
 

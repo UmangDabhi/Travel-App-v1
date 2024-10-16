@@ -1,12 +1,13 @@
 import { Injectable, ConflictException, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { ILike, In, Repository } from 'typeorm';
+import { ILike, In, LessThan, Repository } from 'typeorm';
 import { Trip } from './entities/trip.entity';
 import { CreateTripDto } from './dto/create-trip.dto';
 import { responseHandler } from 'src/Utils/responseHandler';
 import { UpdateTripDto } from './dto/update-trip.dto';
 import { getMapKeysValue, statusMap, tripDurationMap } from '../Helper/helper'
 import { Booking } from 'src/booking/entities/booking.entity';
+import { Cron, CronExpression } from '@nestjs/schedule';
 @Injectable()
 export class TripService {
   constructor(
@@ -37,7 +38,7 @@ export class TripService {
       return responseHandler(500, "Internal Server Error");
     }
   }
-  async findAll(req, page: number = 1, limit: number = 10, searchQuery?: string): Promise<any> {
+  async findAll(req, page: number = 1, limit: number = 10, searchQuery?: string, pending?: string): Promise<any> {
     try {
       const skip = (page - 1) * limit;
       let queryOptions: any = {
@@ -64,6 +65,9 @@ export class TripService {
         if (tripDurationValues.length > 0) {
           queryOptions.where.push({ trip_duration: In(tripDurationValues) });
         }
+      }
+      if (pending) {
+        queryOptions.where = { status: LessThan(1) };
       }
 
       const [trips, total] = await this.tripRepository.findAndCount(queryOptions);
@@ -138,6 +142,46 @@ export class TripService {
       return responseHandler(500, "Internal Server Error");
     }
   }
+
+
+  @Cron(CronExpression.EVERY_DAY_AT_MIDNIGHT)
+  async checkAndUpdateTripStatuses() {
+    const currentDate = new Date();
+    const trips = await this.tripRepository.find({ where: { status: In([0, 1]) } }); // Find pending, destined, and ongoing trips
+
+    trips.forEach(async (trip) => {
+      const tripEndDate = new Date(trip.expected_date);
+      tripEndDate.setDate(tripEndDate.getDate() + this.getDaysFromDuration(trip.trip_duration));
+
+      if (currentDate >= new Date(trip.expected_date) && currentDate < tripEndDate && trip.status === 0) {
+        trip.status = 1; // Set status to 'On Going'
+        await this.tripRepository.save(trip);
+      } else if (currentDate >= tripEndDate && trip.status === 1) {
+        trip.status = 2; // Set status to 'Completed'
+        await this.tripRepository.save(trip);
+      }
+    });
+    console.log('Cron job executed - Trip statuses updated');
+  }
+
+  private getDaysFromDuration(trip_duration: string): number {
+    const durationMap = {
+      '1': 2, // 1 night 2 days
+      '2': 3, // 2 nights 3 days
+      '3': 4, // 3 nights 4 days
+      '4': 5, // 4 nights 5 days
+      '5': 6, // 5 nights 6 days
+      '6': 7, // 6 nights 7 days
+      '7': 8, // 7 nights 8 days
+      '8': 9, // 8 nights 9 days
+      '9': 10, // 9 nights 10 days
+      '10': 11, // 10 nights 11 days
+      '11': 12, // 11 nights 12 days
+    };
+
+    return durationMap[trip_duration] || 0;
+  }
+
 
   private async getTripCode(): Promise<string> {
     let trip_code: string;

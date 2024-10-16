@@ -12,6 +12,7 @@ import { Booking } from './booking/entities/booking.entity';
 import { Traveller } from './traveller/entities/traveller.entity';
 import { Trip } from './trip/entities/trip.entity';
 import { User } from './user/entities/user.entity';
+import { ScheduleModule } from '@nestjs/schedule';
 
 // Create a separate service for configuration logging
 @Injectable()
@@ -35,6 +36,7 @@ class ConfigLoggerService implements OnModuleInit {
       envFilePath: '.env',
       isGlobal: true,
     }),
+    ScheduleModule.forRoot(),
     TypeOrmModule.forRoot({
       type: 'postgres',
       host: process.env.POSTGRES_HOST,

@@ -21,8 +21,9 @@ export class TripController {
     @Query('page') page: number = 1,
     @Query('limit') limit: number = 10,
     @Query('searchQuery') searchQuery?: string,
+    @Query('pending') pending?: string,
   ) {
-    return this.tripService.findAll(req,Number(page), Number(limit), searchQuery);
+    return this.tripService.findAll(req, Number(page), Number(limit), searchQuery, pending);
   }
 
   @UseGuards(AuthGuard)
