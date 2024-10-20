@@ -63,7 +63,7 @@ export class UserController {
   @UseInterceptors(
     FileInterceptor('file', {
       storage: diskStorage({
-        destination: `${path.join(__dirname,'..','..','uploads','qrFolder')}`,
+        destination: `${path.join(__dirname,'..','uploads','qrFolder')}`,
         filename: (req, file, callback) => {
           const uniqueSuffix = "qr_code";
           const fileExt = extname(file.originalname);

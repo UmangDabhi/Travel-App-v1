@@ -10,7 +10,7 @@ import { join, extname } from 'path';
 @Injectable()
 export class UserService {
 
-  private readonly uploadPath = join(__dirname, '..', '..', 'uploads', 'qrFolder');
+  private readonly uploadPath = join(__dirname, '..', 'uploads', 'qrFolder');
 
   constructor(
     @InjectRepository(User)
