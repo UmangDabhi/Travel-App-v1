@@ -1,3 +1,4 @@
+import { collectionTypeMap } from "src/Helper/helper";
 import { Traveller } from "src/traveller/entities/traveller.entity";
 import { Trip } from "src/trip/entities/trip.entity";
 import { User } from "src/user/entities/user.entity";
@@ -18,7 +19,7 @@ export class Booking {
 
     @Column({ default: 0 })
     advance_received: number;
-    
+
     @Column({ nullable: true })
     sharing_type: string;
 
@@ -28,8 +29,8 @@ export class Booking {
     @Column({ default: 0 })
     collected_amount: number;
 
-    @Column({ nullable: true })
-    collection_type: string;
+    @Column({ nullable: true, enum: collectionTypeMap })
+    collection_type: number;
 
     @ManyToOne(() => User, { nullable: true, eager: true })
     @JoinColumn({ name: "collected_by" })
@@ -68,6 +69,6 @@ export class Booking {
     }
 
     get pending_amount(): number {
-        return this.total_amount - this.advance_received;
+        return this.total_amount - this.advance_received - this.collected_amount;
     }
 }

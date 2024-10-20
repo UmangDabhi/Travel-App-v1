@@ -5,13 +5,22 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { User } from './entities/user.entity';
 import { ILike, In, Like, Not, Raw, Repository } from 'typeorm';
 import { responseHandler } from 'src/Utils/responseHandler';
-
+import { existsSync, mkdirSync, unlinkSync } from 'fs';
+import { join, extname } from 'path';
 @Injectable()
 export class UserService {
+
+  private readonly uploadPath = join(__dirname, '..', '..', 'public', 'uploads', 'qrFolder');
+
   constructor(
     @InjectRepository(User)
     private userRepository: Repository<User>,
-  ) { }
+  ) {
+    console.log(this.uploadPath);
+    if (!existsSync(this.uploadPath)) {
+      mkdirSync(this.uploadPath, { recursive: true });
+    }
+  }
 
   async create(createUserDto: CreateUserDto): Promise<any> {
     try {
@@ -129,6 +138,38 @@ export class UserService {
       return responseHandler(500, 'Internal Server Error');
     }
   }
+
+  async uploadFile(file: Express.Multer.File): Promise<any> {
+    const fileName = 'qr_code';
+    const fileExt = extname(file.originalname); // Get the extension of the uploaded file
+    const newFilePath = join(this.uploadPath, `${fileName}${fileExt}`);
+
+    const extensions = ['png', 'jpg', 'jpeg'];
+    for (const ext of extensions) {
+      const oldFilePath = join(this.uploadPath, `${fileName}.${ext}`);
+      if (existsSync(oldFilePath) && oldFilePath !== newFilePath) {
+        unlinkSync(oldFilePath);
+      }
+    }
+
+    return responseHandler(200, `File uploaded successfully as ${fileName}${fileExt}`);
+  }
+
+  async getQRFile(): Promise<any> {
+    const extensions = ['png', 'jpg', 'jpeg'];
+    let fileName = "qr_code";
+
+    for (const ext of extensions) {
+      const possibleFilePath = join(this.uploadPath, `${fileName}.${ext}`);
+      if (existsSync(possibleFilePath)) {
+        const file_url = `${process.env.BASE_URL}/uploads/qrFolder/${fileName}.${ext}`
+        return responseHandler(200, `File Found successfully`, file_url);
+      }
+    }
+    return responseHandler(404, `File Not Found`);
+  }
+
+
   private async getEmpCode(): Promise<string> {
     let emp_code: string;
     let isCodeUnique = false;

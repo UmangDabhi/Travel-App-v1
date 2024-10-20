@@ -5,6 +5,7 @@ import { UpdateBookingDto } from './dto/update-booking.dto';
 import { AuthGuard } from 'src/auth/auth.guard';
 import { FindBookingDto } from './dto/find-booking.dto';
 import { Response } from 'express';
+import { CollectPaymentDto } from './dto/collect-payment.dto';
 
 @Controller('booking')
 export class BookingController {
@@ -43,6 +44,12 @@ export class BookingController {
   @Patch('update_booking/:id')
   update(@Param('id') id: string, @Body() updateBookingDto: UpdateBookingDto) {
     return this.bookingService.update(+id, updateBookingDto);
+  }
+
+  @UseGuards(AuthGuard)
+  @Patch('collect_payment/:id')
+  collectPayment(@Param('id') id: string, @Body() collectPaymentDto: CollectPaymentDto) {
+    return this.bookingService.collectPayment(+id, collectPaymentDto);
   }
 
   @UseGuards(AuthGuard)

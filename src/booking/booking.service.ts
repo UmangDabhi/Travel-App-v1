@@ -13,6 +13,7 @@ import { response, Response } from 'express';
 import * as ExcelJS from 'exceljs';
 import * as fs from 'fs';
 import * as path from 'path';
+import { CollectPaymentDto } from './dto/collect-payment.dto';
 
 @Injectable()
 export class BookingService {
@@ -328,6 +329,41 @@ export class BookingService {
       });
 
       return responseHandler(200, 'Booking updated successfully');
+    } catch (error) {
+      console.error(error);
+      return responseHandler(500, 'Internal Server Error');
+    }
+  }
+  async collectPayment(id: number, collectPaymentDto: CollectPaymentDto) {
+    try {
+      const { collected_amount, collection_type, collected_by_id } = collectPaymentDto;
+
+      // Find existing booking
+      const existingBooking = await this.bookingRepository.findOne({ where: { id } });
+      if (!existingBooking) {
+        return responseHandler(404, 'Booking Not Found');
+      }
+      const user = await this.userRepository.findOne({ where: { id: collected_by_id } });
+
+      if (!user) {
+        return responseHandler(400, 'Invalid user');
+      }
+
+      existingBooking.collected_amount = collected_amount;
+      existingBooking.collection_type = collection_type;
+      existingBooking.collected_by = user;
+      const total_collected_amount = Number(existingBooking.advance_received) + Number(existingBooking.collected_amount);
+      console.log(total_collected_amount);
+      console.log(existingBooking.collected_amount);
+      console.log(existingBooking.advance_received);
+      console.log(existingBooking.total_amount);
+      existingBooking.pending_amount
+      if (existingBooking.total_amount == total_collected_amount)
+        existingBooking.payment_done = true;
+
+      await this.bookingRepository.update(id, existingBooking);
+
+      return responseHandler(200, 'Payment Updated Successfully');
     } catch (error) {
       console.error(error);
       return responseHandler(500, 'Internal Server Error');

@@ -11,6 +11,10 @@ export const tripDurationMap = {
   'On Going': 2,
   Completed: 3,
 };
+export const collectionTypeMap = {
+  CASH: 1,
+  Online: 2
+};
 export const USER_ROLE = {
   ADMIN: 1,
   MANAGER: 2,
