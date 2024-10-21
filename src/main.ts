@@ -15,7 +15,9 @@ async function bootstrap() {
 
   // Serve static files from the React build directory
   app.useStaticAssets(join(__dirname, '..', 'public'));
-  app.useStaticAssets(join(__dirname, 'uploads'));
+  app.useStaticAssets(join(__dirname, '..', 'uploads'), {
+    prefix: '/uploads', // Add '/uploads' as the URL prefix
+  });
   console.log(join(__dirname, 'uploads'))
   // Use middleware to handle client-side routing
   app.use(serveReactMiddleware);

@@ -10,7 +10,7 @@ import { join, extname } from 'path';
 @Injectable()
 export class UserService {
 
-  private readonly uploadPath = join(__dirname, '..', 'uploads', 'qrFolder');
+  private readonly uploadPath = join(__dirname, '..', '..', 'public', 'uploads', 'qrFolder');
 
   constructor(
     @InjectRepository(User)
@@ -144,12 +144,10 @@ export class UserService {
     const fileExt = extname(file.originalname); // Get the extension of the uploaded file
     const newFilePath = join(this.uploadPath, `${fileName}${fileExt}`);
 
-    // Remove the existing folder if it exists
     if (fs.existsSync(this.uploadPath)) {
       fs.rmSync(this.uploadPath, { recursive: true });
     }
 
-    // Recreate the folder
     fs.mkdirSync(this.uploadPath, { recursive: true });
 
     try {

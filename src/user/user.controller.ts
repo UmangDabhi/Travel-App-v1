@@ -4,18 +4,11 @@ import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { AuthGuard } from 'src/auth/auth.guard';
 import { FileInterceptor } from '@nestjs/platform-express';
-import { diskStorage } from 'multer';
-import { extname } from 'path';
-import * as path from 'path';
-import * as fs from 'fs';
 
 @Controller('user')
 export class UserController {
-  // private readonly 
 
-  constructor(private readonly userService: UserService,
-
-  ) { }
+  constructor(private readonly userService: UserService) { }
 
   @UseGuards(AuthGuard)
   @Post('create_user')
@@ -82,7 +75,7 @@ export class UserController {
     if (!file) {
       throw new BadRequestException('File is required');
     }
-    
+
     return this.userService.uploadFile(file);
   }
 }
