@@ -7,10 +7,15 @@ import { FileInterceptor } from '@nestjs/platform-express';
 import { diskStorage } from 'multer';
 import { extname } from 'path';
 import * as path from 'path';
+import * as fs from 'fs';
 
 @Controller('user')
 export class UserController {
-  constructor(private readonly userService: UserService) { }
+  // private readonly 
+
+  constructor(private readonly userService: UserService,
+
+  ) { }
 
   @UseGuards(AuthGuard)
   @Post('create_user')
@@ -57,22 +62,36 @@ export class UserController {
   getQRFile() {
     return this.userService.getQRFile();
   }
-  
+
   // @UseGuards(AuthGuard)
   @Post('upload_qr_code')
   @UseInterceptors(
     FileInterceptor('file', {
       storage: diskStorage({
-        destination: `${path.join(__dirname,'..','uploads','qrFolder')}`,
+        destination: (req, file, callback) => {
+          const uploadPath = path.join(__dirname, '..', 'uploads', 'qrFolder');
+          // Delete the folder and recreate it before storing the file
+          if (fs.existsSync(uploadPath)) {
+            // Remove folder and its contents
+            fs.rmSync(uploadPath, { recursive: true });
+          }
+          // Recreate the folder
+          fs.mkdirSync(uploadPath, { recursive: true });
+
+          callback(null, uploadPath); // Store the file in the recreated folder
+        },
         filename: (req, file, callback) => {
-          const uniqueSuffix = "qr_code";
-          const fileExt = extname(file.originalname);
-          callback(null, `${uniqueSuffix}${fileExt}`);
+          const uniqueSuffix = 'qr_code'; // File name to be qr_code
+          const fileExt = extname(file.originalname); // Get file extension (e.g., .png, .jpg)
+          callback(null, `${uniqueSuffix}${fileExt}`); // Save file as 'qr_code.extension'
         },
       }),
       fileFilter: (req, file, callback) => {
         if (!file.originalname.match(/\.(jpg|jpeg|png)$/)) {
-          return callback(new BadRequestException('Only image and document files are allowed!'), false);
+          return callback(
+            new BadRequestException('Only image files are allowed!'),
+            false,
+          );
         }
         callback(null, true);
       },
@@ -82,6 +101,7 @@ export class UserController {
     if (!file) {
       throw new BadRequestException('File is required');
     }
-    return this.userService.uploadFile(file);
+    // You can perform any additional logic here
+    return { message: `File uploaded successfully as qr_code${extname(file.originalname)}` };
   }
 }
