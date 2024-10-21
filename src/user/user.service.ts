@@ -5,7 +5,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { User } from './entities/user.entity';
 import { ILike, In, Like, Not, Raw, Repository } from 'typeorm';
 import { responseHandler } from 'src/Utils/responseHandler';
-import { existsSync, mkdirSync, unlinkSync } from 'fs';
+import * as fs from 'fs';
 import { join, extname } from 'path';
 @Injectable()
 export class UserService {
@@ -17,8 +17,8 @@ export class UserService {
     private userRepository: Repository<User>,
   ) {
     console.log(this.uploadPath);
-    if (!existsSync(this.uploadPath)) {
-      mkdirSync(this.uploadPath, { recursive: true });
+    if (!fs.existsSync(this.uploadPath)) {
+      fs.mkdirSync(this.uploadPath, { recursive: true });
     }
   }
 
@@ -144,13 +144,27 @@ export class UserService {
     const fileExt = extname(file.originalname); // Get the extension of the uploaded file
     const newFilePath = join(this.uploadPath, `${fileName}${fileExt}`);
 
-    const extensions = ['png', 'jpg', 'jpeg'];
-    for (const ext of extensions) {
-      const oldFilePath = join(this.uploadPath, `${fileName}.${ext}`);
-      if (existsSync(oldFilePath) && oldFilePath !== newFilePath) {
-        unlinkSync(oldFilePath);
-      }
+    // Remove the existing folder if it exists
+    if (fs.existsSync(this.uploadPath)) {
+      fs.rmSync(this.uploadPath, { recursive: true });
     }
+
+    // Recreate the folder
+    fs.mkdirSync(this.uploadPath, { recursive: true });
+
+    try {
+      if (file.buffer) {
+        fs.writeFileSync(newFilePath, file.buffer);
+      }
+      else if (file.path) {
+        fs.renameSync(file.path, newFilePath);
+      } else {
+        return responseHandler(200, 'File data is not available');
+      }
+    } catch (error) {
+      return responseHandler(200, `Failed to save file`);
+    }
+
 
     return responseHandler(200, `File uploaded successfully as ${fileName}${fileExt}`);
   }
@@ -161,7 +175,7 @@ export class UserService {
 
     for (const ext of extensions) {
       const possibleFilePath = join(this.uploadPath, `${fileName}.${ext}`);
-      if (existsSync(possibleFilePath)) {
+      if (fs.existsSync(possibleFilePath)) {
         const file_url = `${process.env.BASE_URL}/uploads/qrFolder/${fileName}.${ext}`
         return responseHandler(200, `File Found successfully`, file_url);
       }

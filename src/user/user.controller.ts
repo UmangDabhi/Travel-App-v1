@@ -67,25 +67,6 @@ export class UserController {
   @Post('upload_qr_code')
   @UseInterceptors(
     FileInterceptor('file', {
-      storage: diskStorage({
-        destination: (req, file, callback) => {
-          const uploadPath = path.join(__dirname, '..', 'uploads', 'qrFolder');
-          // Delete the folder and recreate it before storing the file
-          if (fs.existsSync(uploadPath)) {
-            // Remove folder and its contents
-            fs.rmSync(uploadPath, { recursive: true });
-          }
-          // Recreate the folder
-          fs.mkdirSync(uploadPath, { recursive: true });
-
-          callback(null, uploadPath); // Store the file in the recreated folder
-        },
-        filename: (req, file, callback) => {
-          const uniqueSuffix = 'qr_code'; // File name to be qr_code
-          const fileExt = extname(file.originalname); // Get file extension (e.g., .png, .jpg)
-          callback(null, `${uniqueSuffix}${fileExt}`); // Save file as 'qr_code.extension'
-        },
-      }),
       fileFilter: (req, file, callback) => {
         if (!file.originalname.match(/\.(jpg|jpeg|png)$/)) {
           return callback(
@@ -101,7 +82,7 @@ export class UserController {
     if (!file) {
       throw new BadRequestException('File is required');
     }
-    // You can perform any additional logic here
-    return { message: `File uploaded successfully as qr_code${extname(file.originalname)}` };
+    
+    return this.userService.uploadFile(file);
   }
 }
